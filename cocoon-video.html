@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cocoon – Video giới thiệu mỹ phẩm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body { font-family: "Be Vietnam Pro", system-ui, sans-serif; background: #1b1511; color: #fff; }
+  .stage { position: relative; overflow: hidden; border-radius: 1rem; background: #000; }
+  .scene {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    padding: 6%; opacity: 0; visibility: hidden;
+    transition: opacity .9s ease, visibility .9s;
+    background: var(--bg); color: var(--fg);
+  }
+  .scene.active { opacity: 1; visibility: visible; }
+  .orb {
+    position: absolute; right: -8%; top: 50%; width: 62%; aspect-ratio: 1; border-radius: 50%;
+    background: var(--orb); transform: translateY(-50%) scale(.6);
+    transition: transform 4.5s cubic-bezier(.2,.7,.2,1);
+  }
+  .scene.active .orb { transform: translateY(-50%) scale(1); }
+  .orb.small { width: 30%; right: 12%; top: 22%; opacity: .55; }
+  .copy { position: relative; z-index: 2; max-width: 55%; }
+  .copy h2 { font-weight: 800; font-size: clamp(1.4rem, 5.2vw, 3.6rem); line-height: 1.08; margin: 0 0 .6rem; }
+  .copy p  { font-weight: 300; font-size: clamp(.8rem, 1.8vw, 1.25rem); margin: 0; line-height: 1.5; }
+  .copy .tag { font-weight: 600; font-size: clamp(.7rem, 1.4vw, .95rem); margin-bottom: .8rem; opacity: .75; }
+  .scene.active .copy > * { animation: rise .9s both; }
+  .scene.active .copy > *:nth-child(2) { animation-delay: .25s; }
+  .scene.active .copy > *:nth-child(3) { animation-delay: .5s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+  .s-intro  { --bg:#2a1d14; --fg:#f6ead9; --orb: radial-gradient(circle at 30% 30%, #8a5a36, #3b2616); }
+  .s-coffee { --bg:#4a2e1c; --fg:#fbeedd; --orb: radial-gradient(circle at 35% 35%, #c08a58, #6b4128); }
+  .s-bido   { --bg:#dcebd2; --fg:#233a22; --orb: radial-gradient(circle at 35% 35%, #f4fbe9, #9cc58a); }
+  .s-rose   { --bg:#f6d3dc; --fg:#5a1730; --orb: radial-gradient(circle at 35% 35%, #ffe9ee, #e07a96); }
+  .s-nghe   { --bg:#f2b43a; --fg:#3b2400; --orb: radial-gradient(circle at 35% 35%, #ffd877, #d9800f); }
+  .s-end    { --bg:#1f3a2b; --fg:#eaf5e4; --orb: radial-gradient(circle at 35% 35%, #4f8a63, #14291d); }
+
+
+  .presenter { position: absolute; right: 4%; bottom: 0; width: 24%; z-index: 3; pointer-events: none; }
+  .presenter svg { width: 100%; height: auto; display: block; }
+  .presenter .mouth { transform-box: fill-box; transform-origin: center; }
+  .presenter .eyes { transform-box: fill-box; transform-origin: center; animation: blink 4.5s infinite; }
+  .presenter.talking .mouth { animation: talk .26s infinite alternate ease-in-out; }
+  .presenter.talking .bob { animation: bob .9s infinite alternate ease-in-out; }
+  @keyframes talk { from { transform: scaleY(1); } to { transform: scaleY(3.6) scaleX(.85); } }
+  @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+  @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(.1); } }
+  .host-video { position: absolute; right: 4%; bottom: 5%; width: 24%; aspect-ratio: 9/16; max-height: 90%; object-fit: cover; border-radius: .75rem; z-index: 3; background: #000; box-shadow: 0 6px 24px rgba(0,0,0,.35); }
+  .subtitle {
+    position: absolute; left: 6%; bottom: 5%; max-width: 62%; z-index: 4;
+    background: rgba(0,0,0,.6); color: #fff; padding: .4rem .8rem; border-radius: .5rem;
+    font-size: clamp(.62rem, 1.45vw, 1rem); line-height: 1.45;
+  }
+  .start-overlay { position: absolute; inset: 0; z-index: 10; background: rgba(20,12,8,.72); }
+
+  .progress-row { display: flex; gap: 6px; }
+  .progress-row .seg { flex: 1; height: 4px; background: #ffffff33; border-radius: 4px; overflow: hidden; cursor: pointer; }
+  .progress-row .seg i { display: block; height: 100%; width: 0; background: #fff; }
+  .btn-ctrl { border-radius: 50rem; }
+  @media (max-width: 575px) { .copy { max-width: 70%; } }
+  @media (prefers-reduced-motion: reduce) {
+    .scene, .orb { transition: none; }
+    .scene.active .copy > * { animation: none; }
+  }
+</style>
+</head>
+<body>
+<main class="container py-4" style="max-width: 960px;">
+  <div class="stage ratio ratio-16x9" id="stage">
+    <div>
+      <section class="scene s-intro" data-voice="Xin chào các bạn! Hôm nay mình xin giới thiệu Cocoon, thương hiệu mỹ phẩm thuần chay làm từ nguyên liệu Việt Nam.">
+        <div class="orb"></div>
+        <div class="copy">
+          <div class="tag">Cocoon Vietnam</div>
+          <h2>Đẹp từ thiên nhiên Việt Nam</h2>
+          <p>Mỹ phẩm thuần chay, làm từ nguyên liệu bản địa.</p>
+        </div>
+      </section>
+
+      <section class="scene s-coffee" data-voice="Đầu tiên là cà phê Đắk Lắk. Hạt cà phê giúp tẩy tế bào chết nhẹ nhàng, cho làn da mịn màng và sạch sâu.">
+        <div class="orb"></div>
+        <div class="copy">
+          <div class="tag">Cà phê Đắk Lắk</div>
+          <h2>Làn da mịn màng, sạch sâu</h2>
+          <p>Hạt cà phê Đắk Lắk giúp tẩy tế bào chết cho mặt và cơ thể.</p>
+        </div>
+      </section>
+
+      <section class="scene s-bido" data-voice="Tiếp theo là bí đao. Mát lành và dịu nhẹ, bí đao giúp làm dịu da và cân bằng da dầu mỗi ngày.">
+        <div class="orb"></div>
+        <div class="copy">
+          <div class="tag">Bí đao</div>
+          <h2>Làm dịu, cân bằng da dầu</h2>
+          <p>Bí đao mát lành, quen thuộc trong bữa cơm Việt, nay chăm da mỗi ngày.</p>
+        </div>
+      </section>
+
+      <section class="scene s-rose" data-voice="Hoa hồng mang đến hương thơm dịu dàng, giúp cấp ẩm cho làn da mềm mượt.">
+        <div class="orb"></div>
+        <div class="copy">
+          <div class="tag">Hoa hồng</div>
+          <h2>Cấp ẩm, da mềm mượt</h2>
+          <p>Hương hoa hồng nhẹ nhàng cho làn da đủ nước.</p>
+        </div>
+      </section>
+
+      <section class="scene s-nghe" data-voice="Còn nghệ Hưng Yên là bí quyết dưỡng da truyền thống, giúp da sáng và đều màu.">
+        <div class="orb"></div>
+        <div class="copy">
+          <div class="tag">Nghệ Hưng Yên</div>
+          <h2>Da sáng, đều màu</h2>
+          <p>Nghệ vàng Hưng Yên, bí quyết dưỡng da truyền thống.</p>
+        </div>
+      </section>
+
+      <section class="scene s-end" data-voice="Tất cả sản phẩm Cocoon đều thuần chay và không thử nghiệm trên động vật. Cocoon, làm đẹp từ thiên nhiên Việt Nam. Cảm ơn các bạn đã xem!">
+        <div class="orb"></div>
+        <div class="copy">
+          <div class="tag">Cam kết của Cocoon</div>
+          <h2>100% thuần chay. Không thử nghiệm trên động vật.</h2>
+          <p>Cocoon – Làm đẹp từ thiên nhiên Việt Nam.</p>
+        </div>
+      </section>
+
+      <div class="presenter" id="presenter" aria-hidden="true">
+        <svg viewBox="0 0 200 270" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 270 C18 208 58 186 100 186 C142 186 182 208 182 270Z" fill="#2f6b4a"/>
+          <path d="M82 188 L100 214 L118 188Z" fill="#f1c9a5"/>
+          <rect x="88" y="158" width="24" height="34" fill="#f1c9a5"/>
+          <g class="bob">
+            <path d="M44 120 C40 60 70 40 100 40 C130 40 160 60 156 120 C158 160 150 190 140 200 L60 200 C50 190 42 160 44 120Z" fill="#1d1410"/>
+            <ellipse cx="100" cy="112" rx="40" ry="48" fill="#f6d3b3"/>
+            <path d="M58 104 C58 62 142 62 142 104 C128 84 98 76 58 104Z" fill="#1d1410"/>
+            <g class="eyes"><circle cx="84" cy="114" r="3.6" fill="#2a1a12"/><circle cx="116" cy="114" r="3.6" fill="#2a1a12"/></g>
+            <path d="M75 104 Q84 99 93 104 M107 104 Q116 99 125 104" stroke="#2a1a12" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <ellipse cx="72" cy="128" rx="7" ry="4" fill="#f09aa8" opacity=".45"/>
+            <ellipse cx="128" cy="128" rx="7" ry="4" fill="#f09aa8" opacity=".45"/>
+            <ellipse class="mouth" cx="100" cy="140" rx="9" ry="2.4" fill="#b3475a"/>
+          </g>
+        </svg>
+      </div>
+      <video class="host-video" id="hostVideo" playsinline preload="auto" hidden></video>
+      <div class="subtitle" id="subtitle"></div>
+      <div class="start-overlay d-flex flex-column align-items-center justify-content-center gap-3 text-center p-3" id="overlay">
+        <h3 class="fw-bold m-0">Cocoon – Video giới thiệu</h3>
+        <button class="btn btn-light btn-lg btn-ctrl px-5" id="startVoice">Bắt đầu xem (có giọng đọc)</button>
+        <button class="btn btn-outline-light btn-ctrl px-4" id="startMute">Xem không tiếng</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-row mt-3" id="progress" aria-label="Tiến trình video"></div>
+
+  <div class="d-flex flex-wrap gap-2 justify-content-center mt-3">
+    <button class="btn btn-light btn-ctrl px-4" id="playBtn">Phát</button>
+    <button class="btn btn-outline-light btn-ctrl px-4" id="voiceBtn">Giọng đọc: Bật</button>
+    <button class="btn btn-outline-light btn-ctrl px-4" id="replayBtn">Xem lại</button>
+    <button class="btn btn-outline-light btn-ctrl px-4" id="fsBtn">Toàn màn hình</button>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+  var HOST_VIDEO = '';            // dán đường dẫn video MC vào đây, ví dụ 'mc.mp4'
+  var MIN = 5500;                 // thời gian tối thiểu mỗi cảnh (ms)
+  var scenes = document.querySelectorAll('.scene');
+  var bar = document.getElementById('progress');
+  var playBtn = document.getElementById('playBtn');
+  var voiceBtn = document.getElementById('voiceBtn');
+  var presenter = document.getElementById('presenter');
+  var subtitle = document.getElementById('subtitle');
+  var overlay = document.getElementById('overlay');
+  var synth = window.speechSynthesis, viVoice = null, token = 0;
+  var segs = [], current = 0, elapsed = 0, last = performance.now();
+  var playing = false, voiceOn = true, speaking = false, spoken = true;
+  var hostVideo = document.getElementById('hostVideo'), HOST = !!HOST_VIDEO;
+  if (HOST) {
+    hostVideo.src = HOST_VIDEO; hostVideo.hidden = false;
+    presenter.style.display = 'none';
+    voiceBtn.style.display = 'none';
+    document.getElementById('startVoice').textContent = 'Bắt đầu xem (có tiếng)';
+    hostVideo.addEventListener('loadedmetadata', function () {
+      MIN = hostVideo.duration * 1000 / scenes.length;   // chia đều video cho các cảnh
+    });
+  }
+
+  function pickVoice() {
+    if (!synth) return;
+    viVoice = synth.getVoices().filter(function (v) { return /^vi/i.test(v.lang); })[0] || null;
+  }
+  if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
+
+  function speak(text) {
+    var my = ++token;
+    speaking = false;
+    if (synth) synth.cancel();
+    if (!voiceOn || !synth) { spoken = true; return; }
+    spoken = false;
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = 'vi-VN'; u.rate = 0.95;
+    if (viVoice) u.voice = viVoice;
+    u.onstart = function () { if (my === token) speaking = true; };
+    u.onend = u.onerror = function () { if (my === token) { speaking = false; spoken = true; } };
+    synth.speak(u);
+  }
+
+  scenes.forEach(function (_, i) {
+    var s = document.createElement('div');
+    s.className = 'seg';
+    s.innerHTML = '<i></i>';
+    s.addEventListener('click', function () { go(i, true); });
+    bar.appendChild(s);
+    segs.push(s.firstChild);
+  });
+
+  function go(i, seek) {
+    current = i; elapsed = 0;
+    scenes.forEach(function (sc, k) { sc.classList.toggle('active', k === i); });
+    segs.forEach(function (f, k) { f.style.width = k < i ? '100%' : '0'; });
+    subtitle.textContent = scenes[i].dataset.voice;
+    if (HOST && seek) hostVideo.currentTime = i * MIN / 1000;
+    if (playing && !HOST) speak(scenes[i].dataset.voice); else spoken = true;
+  }
+
+  function stop() {
+    playing = false; token++; speaking = false;
+    if (synth) synth.cancel();
+    presenter.classList.remove('talking');
+    if (HOST) hostVideo.pause();
+    playBtn.textContent = 'Phát';
+  }
+
+  function tick(now) {
+    var dt = now - last; last = now;
+    if (playing) {
+      elapsed += dt;
+      segs[current].style.width = Math.min(100, elapsed / MIN * 100) + '%';
+      presenter.classList.toggle('talking', voiceOn ? speaking : elapsed < MIN * 0.85);
+      if (elapsed > 25000) spoken = true;          // phòng khi giọng đọc bị treo
+      if (elapsed >= MIN && spoken) {
+        if (current < scenes.length - 1) go(current + 1);
+        else stop();
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function start(withVoice) {
+    voiceOn = HOST ? false : withVoice;
+    if (HOST) { hostVideo.muted = !withVoice; hostVideo.play(); }
+    voiceBtn.textContent = 'Giọng đọc: ' + (voiceOn ? 'Bật' : 'Tắt');
+    overlay.style.display = 'none';
+    playing = true; playBtn.textContent = 'Tạm dừng';
+    go(0, true);
+  }
+  document.getElementById('startVoice').addEventListener('click', function () { start(true); });
+  document.getElementById('startMute').addEventListener('click', function () { start(false); });
+
+  playBtn.addEventListener('click', function () {
+    if (playing) {
+      playing = false; playBtn.textContent = 'Phát';
+      if (synth) synth.pause();
+      if (HOST) hostVideo.pause();
+      presenter.classList.remove('talking');
+    } else {
+      if (current === scenes.length - 1 && elapsed >= MIN && spoken) { playing = true; go(0, true); if (HOST) hostVideo.play(); }
+      else { playing = true; if (synth && voiceOn) synth.resume(); if (HOST) hostVideo.play(); }
+      playBtn.textContent = 'Tạm dừng';
+    }
+  });
+  voiceBtn.addEventListener('click', function () {
+    voiceOn = !voiceOn;
+    voiceBtn.textContent = 'Giọng đọc: ' + (voiceOn ? 'Bật' : 'Tắt');
+    if (voiceOn && playing) speak(scenes[current].dataset.voice);
+    else { token++; speaking = false; spoken = true; if (synth) synth.cancel(); }
+  });
+  document.getElementById('replayBtn').addEventListener('click', function () {
+    playing = true; playBtn.textContent = 'Tạm dừng'; go(0, true);
+    if (HOST) hostVideo.play();
+  });
+  document.getElementById('fsBtn').addEventListener('click', function () {
+    var el = document.getElementById('stage');
+    if (el.requestFullscreen) el.requestFullscreen();
+  });
+
+  go(0);
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
